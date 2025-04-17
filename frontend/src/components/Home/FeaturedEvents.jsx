@@ -1,6 +1,6 @@
 import React from "react";
 import { useNavigate } from "react-router-dom";
-import sampleEvents from "../assets/data/sampleEvents";
+import sampleEvents from "../../assets/data/sampleEvents";
 
 const FeaturedEvents = () => {
   const navigate = useNavigate();

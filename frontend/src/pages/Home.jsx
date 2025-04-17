@@ -1,8 +1,8 @@
 import React from "react";
-import Hero from "../components/Hero";
-import FeaturedEvents from "../components/FeaturedEvents";
-import Benefits from "../components/Benefits";
-import PricingCTA from "../components/PricingCTA";
+import Hero from "../components/Home/Hero";
+import FeaturedEvents from "../components/Home/FeaturedEvents";
+import Benefits from "../components/Home/Benefits";
+import PricingCTA from "../components/Home/PricingCTA";
 
 const Home = () => {
   return (

@@ -4,7 +4,7 @@ const generateTokens = (userId) => {
   const accessToken = jwt.sign(
     { userId },
     process.env.JWT_ACCESS_SECRET || 'your-access-secret-key',
-    { expiresIn: '1m' }
+    { expiresIn: '15m' }
   );
 
   const refreshToken = jwt.sign(
@@ -24,8 +24,6 @@ const setTokenCookies = (res, refreshToken) => {
     sameSite: 'strict',
     maxAge: 7 * 24 * 60 * 60 * 1000 // 7 days
   });
-
-  // Return access token to be sent in response body
   return;
 };
 

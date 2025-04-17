@@ -1,9 +1,10 @@
 const express = require('express');
 const router = express.Router();
 const { protect } = require('../middleware/auth');
-const isOrganizer = require('../middleware/isOrganizer');
+const {isOrganizer, isOrganizerEvent} = require('../middleware/isOrganizer');
 const {
   createEvent,
+  getEventsByOrganizer,
   getAllEvents,
   getEventById,
   updateEvent,
@@ -11,10 +12,13 @@ const {
 } = require('../controllers/eventController');
 
 // Routes
-router.post('/', protect, createEvent);
+const validateEvent = require('../middleware/validateEvent');
+
+router.post('/', protect,isOrganizer, validateEvent, createEvent);
+router.get('/getEventsByOrganizer', protect, getEventsByOrganizer);
 router.get('/', getAllEvents);
 router.get('/:id', getEventById);
-router.put('/:id', protect, isOrganizer, updateEvent);
-router.delete('/:id', protect, isOrganizer, deleteEvent);
+router.put('/:id', protect, isOrganizerEvent, updateEvent);
+router.delete('/:id', protect, isOrganizerEvent, deleteEvent);
 
 module.exports = router;

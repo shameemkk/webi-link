@@ -22,18 +22,15 @@ const eventSchema = new mongoose.Schema({
     type: String,
     enum : ['Webinar', 'Workshop','Conference'],
     maxlength: 100,
-  },
-  event_type: {
-    type: String,
-    enum: ['live', 'recorded'],
     required: true,
   },
   is_paid: {
     type: Boolean,
     default: false,
+    required: true,
   },
   price: {
-    type: mongoose.Schema.Types.Decimal128,
+    type: Number,
     default: 0.0,
   },
   start_datetime: {
@@ -42,7 +39,6 @@ const eventSchema = new mongoose.Schema({
   },
   duration: {
     type: Number,
-    required: true,
     min: 0,
   },
   streaming_link: {

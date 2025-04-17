@@ -11,15 +11,26 @@ const createEvent = async (req, res) => {
   }
 };
 
-// Get all events
-const getAllEvents = async (req, res) => {
+const getEventsByOrganizer = async (req, res) => {
   try {
-    const events = await Event.find();
+    const organizerId = req.userId; // Assuming userId is set in the request by auth middleware
+    const events = await Event.find({ organizer_id: organizerId }).populate('organizer_id', 'name');
     res.status(200).json(events);
   } catch (error) {
     res.status(500).json({ message: error.message });
   }
 };
+
+// Get all events
+const getAllEvents = async (req, res) => {
+  try {
+    const events = await Event.find().populate('organizer_id', 'name');
+    res.status(200).json(events);
+  } catch (error) {
+    res.status(500).json({ message: error.message });
+  }
+};
+
 
 // Get single event by ID
 const getEventById = async (req, res) => {
@@ -37,10 +48,10 @@ const getEventById = async (req, res) => {
 // Update event
 const updateEvent = async (req, res) => {
   try {
+    console.log(req)
     const event = await Event.findByIdAndUpdate(
       req.params.id,
       req.body,
-      { new: true, runValidators: true }
     );
     if (!event) {
       return res.status(404).json({ message: 'Event not found' });
@@ -66,6 +77,7 @@ const deleteEvent = async (req, res) => {
 
 module.exports = {
   createEvent,
+  getEventsByOrganizer,
   getAllEvents,
   getEventById,
   updateEvent,

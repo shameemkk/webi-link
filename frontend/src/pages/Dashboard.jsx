@@ -1,5 +1,5 @@
 import { useAuth } from '../context/AuthContext';
-import OrganizerDashboard from '../components/OrganizerDashboard';
+import OrganizerDashboard from '../components/Dashboard/OrganizerDashboard';
 
 const Dashboard = () => {
   const { user } = useAuth();

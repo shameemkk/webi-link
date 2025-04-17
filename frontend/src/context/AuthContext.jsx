@@ -1,6 +1,6 @@
 import { createContext, useContext, useState, useEffect } from 'react';
 import axios from 'axios';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useLocation } from 'react-router-dom';
 import { toast } from 'react-toastify';
 
 const AuthContext = createContext();
@@ -13,11 +13,14 @@ export const AuthProvider = ({ children }) => {
   const [user, setUser] = useState(null);
   const [loading, setLoading] = useState(true);
   const navigate = useNavigate();
-
+  const location = useLocation();
+  const noShowRefreshErrorList=[
+    '/', '/login', '/register','/events','/about','/contact'
+  ]
   // Check if user is authenticated on mount
   useEffect(() => {
     axios.defaults.baseURL = 'http://localhost:5001';
-     axios.defaults.withCredentials = true;  // Important for cookies
+    //  axios.defaults.withCredentials = true;  // Important for cookies
 
     // Request interceptor
     axios.interceptors.request.use(
@@ -41,8 +44,8 @@ export const AuthProvider = ({ children }) => {
         if (error.response?.status === 401 && !originalRequest._retry && !originalRequest.url.includes('/refresh-token')) {
           originalRequest._retry = true;
           try {
-            const response = await axios.post('/api/auth/refresh-token', { withCredentials: true });
-            setUser('dd')
+            axios.defaults.withCredentials = true;
+            const response = await axios.post('/api/auth/refresh-token');
             const newAccessToken = response.data.accessToken;
             localStorage.setItem('accessToken', newAccessToken);
             originalRequest.headers.Authorization = `Bearer ${newAccessToken}`;
@@ -50,7 +53,10 @@ export const AuthProvider = ({ children }) => {
           } catch (refreshError) {
             localStorage.removeItem('accessToken');
             setUser(null);
-            navigate('/login');
+            if (!noShowRefreshErrorList.includes(location.pathname)) {
+              toast.error('Session expired. Please log in again.');
+              navigate('/login');
+            }
             return Promise.reject(refreshError);
           }
         }
@@ -60,7 +66,7 @@ export const AuthProvider = ({ children }) => {
 
     checkAuth();
     
-  }, []);
+  }, [navigate]);
 
 const fetchEvents = async () => {
   try {
@@ -76,11 +82,11 @@ const fetchEvents = async () => {
       const response = await axios.get('/api/auth/me');
       if (response.data) {
         setUser({
-          id: response.data._id,
-          email: response.data.email,
-          role: response.data.role
+          id: response.data.user.id,
+          email: response.data.user.email,
+          role: response.data.user.role
         });
-        console.log('User authenticated:', response.data.email);
+        console.log('User authenticated:', response.data.user.email);
       } else {
         setUser(null);
       }
@@ -146,7 +152,7 @@ const fetchEvents = async () => {
       setUser(null);
       localStorage.removeItem('accessToken');
       delete axios.defaults.headers.common['Authorization'];
-      toast.success('Logged out successfully');
+      toast.info("You have been logged out")
       navigate('/login');
     } catch (error) {
       toast.error('Logout failed');
@@ -163,6 +169,7 @@ const fetchEvents = async () => {
     login,
     logout,
     fetchEvents,
+    checkAuth
   };
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
