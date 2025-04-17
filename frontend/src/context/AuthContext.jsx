@@ -83,6 +83,7 @@ const fetchEvents = async () => {
       if (response.data) {
         setUser({
           id: response.data.user.id,
+          name: response.data.user.name,
           email: response.data.user.email,
           role: response.data.user.role
         });

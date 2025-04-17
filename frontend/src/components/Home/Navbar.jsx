@@ -26,6 +26,12 @@ const Navbar = () => {
 
           {/* Desktop Navigation Links */}
           <div className="hidden md:flex items-center space-x-8">
+          <div
+              onClick={() => handleNavigation("/")}
+              className="text-gray-700 hover:text-blue-600 font-medium transition duration-300 cursor-pointer"
+            >
+              Home
+            </div>
             <div
               onClick={() => handleNavigation("/about")}
               className="text-gray-700 hover:text-blue-600 font-medium transition duration-300 cursor-pointer"
@@ -64,12 +70,11 @@ const Navbar = () => {
                 Let's Start
               </button>
             ) : (
-              <div onClick={logout} className="w-8 h-8 bg-gray-200 rounded-full overflow-hidden">
-                <p>{user.email}</p>
+              <div onClick={logout} className="w-8 h-8 bg-gray-200 rounded-full overflow-hidden border-2 border-blue">
                 <img
-                  src="https://ui-avatars.com/api/?name=User&background=random"
+                  src={`https://ui-avatars.com/api/?name=${user.name}&background=random`}
                   alt="Profile"
-                  className="w-full h-full object-cover"
+                  className="w-full h-full object-cover "
                 />
               </div>
             )}
@@ -104,6 +109,12 @@ const Navbar = () => {
             isOpen ? "block" : "hidden"
           } pt-2 pb-4 space-y-2 border-t border-gray-200`}
         >
+          <div
+            onClick={() => handleNavigation("/")}
+            className="block px-4 py-2 text-gray-700 hover:bg-gray-100 hover:text-blue-600 transition duration-300 cursor-pointer"
+          >
+            Home
+          </div>
           <div
             onClick={() => handleNavigation("/about")}
             className="block px-4 py-2 text-gray-700 hover:bg-gray-100 hover:text-blue-600 transition duration-300 cursor-pointer"

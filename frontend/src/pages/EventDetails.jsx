@@ -1,24 +1,31 @@
 import React, { useEffect, useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import sampleEvents from '../assets/data/sampleEvents';
+import { useAllEventDataList } from "../hooks/useEventData";
+// Remove sampleEvents import
+// import sampleEvents from '../assets/data/sampleEvents';
 
 const EventDetails = () => {
+  const { data: events = [], isLoading: eventsLoading } = useAllEventDataList();
   const { id } = useParams();
   const navigate = useNavigate();
   const [event, setEvent] = useState(null);
-  const [loading, setLoading] = useState(true);
+  // Remove local loading state, use eventsLoading from hook
+  // const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    // Find the event with the matching ID
-    const foundEvent = sampleEvents.find((e, index) => index.toString() === id);
-    
-    if (foundEvent) {
-      setEvent(foundEvent);
+    if (!eventsLoading && events.length > 0) {
+      // Find the event with the matching _id from the fetched events
+      const foundEvent = events.find((e) => e._id === id);
+      
+      if (foundEvent) {
+        setEvent(foundEvent);
+      }
+      // setLoading(false); // Remove setting local loading state
     }
-    setLoading(false);
-  }, [id]);
+  }, [id, events, eventsLoading]); // Add events and eventsLoading to dependency array
 
-  if (loading) {
+  // Use eventsLoading for the loading state
+  if (eventsLoading) {
     return (
       <div className="py-16 bg-gray-50 min-h-screen flex justify-center items-center">
         <div className="text-2xl font-semibold text-gray-700">Loading...</div>
@@ -43,22 +50,28 @@ const EventDetails = () => {
     );
   }
 
-  // Format the date
-  const formattedDate = event.start_datetime.toLocaleDateString('en-US', {
-    weekday: 'long',
-    year: 'numeric',
-    month: 'long',
-    day: 'numeric'
-  });
+  // Format the date (consistent with Events.jsx)
+  const formatDate = (dateString) => {
+    if (!dateString) return 'To Be Announced';
+    const date = new Date(dateString);
+    return date.toLocaleDateString('en-US', { year: 'numeric', month: 'short', day: 'numeric' });
+  };
+  const formattedDate = formatDate(event.start_datetime);
 
-  // Format the time
-  const formattedTime = event.start_datetime.toLocaleTimeString('en-US', {
+  // Format the time (keep existing format)
+  const formattedTime = new Date(event.start_datetime).toLocaleTimeString('en-US', {
     hour: '2-digit',
     minute: '2-digit'
   });
 
-  // Format price
+  // Format price (consistent with Events.jsx)
   const formattedPrice = event.is_paid ? `$${event.price.toFixed(2)}` : 'Free';
+
+  // Get organizer name (consistent with Events.jsx)
+  const organizerName = event.organizer_id ? event.organizer_id.name : 'Unknown';
+
+  // Get attendees count (consistent with Events.jsx)
+  const attendeesCount = event.attendees ? event.attendees.length : 0;
 
   return (
     <div className="py-16 bg-gray-50 min-h-screen">
@@ -76,13 +89,14 @@ const EventDetails = () => {
               <span className={`px-3 py-1 ${event.is_paid ? 'bg-purple-100 text-purple-800' : 'bg-green-100 text-green-800'} rounded-full text-sm font-medium`}>
                 {event.is_paid ? 'Paid' : 'Free'}
               </span>
-              <span className="px-3 py-1 bg-gray-100 text-gray-800 rounded-full text-sm font-medium">
-                {event.event_type === 'live' ? 'Live Event' : 'Recorded'}
-              </span>
+          
             </div>
             
             <h1 className="text-3xl font-bold text-gray-900 mb-4">{event.title}</h1>
             
+            {/* Add Organizer Name */}
+            <p className="text-gray-600 text-lg mb-4">By {organizerName}</p>
+
             <p className="text-gray-700 text-lg mb-6">{event.description}</p>
             
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
@@ -107,23 +121,26 @@ const EventDetails = () => {
                     </svg>
                     <span className="text-gray-700">{formattedPrice}</span>
                   </li>
+                  {/* Add Attendees Count */}
+                  <li className="flex items-start">
+                    <svg className="w-5 h-5 text-blue-500 mr-2 mt-1" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z"></path></svg>
+                    <span className="text-gray-700">{attendeesCount} attendees</span>
+                  </li>
                 </ul>
               </div>
               
               <div>
                 <h3 className="text-lg font-semibold text-gray-900 mb-2">How to Join</h3>
                 <p className="text-gray-700 mb-4">
-                  {event.event_type === 'live' 
-                    ? 'Join us live via the streaming link below:'
-                    : 'Watch the recorded session at your convenience:'}
+                  Join us live via the streaming link below:
                 </p>
                 <a 
-                  href={event.event_type === 'live' ? event.streaming_link : event.video_url} 
+                  href={event.streaming_link} 
                   target="_blank" 
                   rel="noopener noreferrer"
                   className="inline-block bg-blue-600 text-white px-6 py-2 rounded-lg hover:bg-blue-700 transition duration-300"
                 >
-                  {event.event_type === 'live' ? 'Join Event' : 'Watch Recording'}
+                  Join Event
                 </a>
               </div>
             </div>
@@ -139,7 +156,7 @@ const EventDetails = () => {
                 
                 {event.is_paid && (
                   <button className="bg-blue-600 text-white px-6 py-2 rounded-lg hover:bg-blue-700 transition duration-300">
-                    Register Now
+                    Pay & Register Now
                   </button>
                 )}
               </div>
