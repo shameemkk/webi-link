@@ -1,6 +1,7 @@
 const express = require('express');
 const router = express.Router();
 const { protect } = require('../middleware/auth');
+const validateEvent = require('../middleware/validateEvent');
 const {isOrganizer, isOrganizerEvent} = require('../middleware/isOrganizer');
 const {
   createEvent,
@@ -10,9 +11,6 @@ const {
   updateEvent,
   deleteEvent
 } = require('../controllers/eventController');
-
-// Routes
-const validateEvent = require('../middleware/validateEvent');
 
 router.post('/', protect,isOrganizer, validateEvent, createEvent);
 router.get('/getEventsByOrganizer', protect, getEventsByOrganizer);

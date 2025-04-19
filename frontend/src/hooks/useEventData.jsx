@@ -63,3 +63,14 @@ export const useAllEventDataList = () => {
     refetchOnWindowFocus: false,
   });
 };
+
+export const useEventDataById = (id) => {
+  return useQuery({
+    queryKey: ["eventById"],
+    queryFn: async () => {
+      const response = await axios.get(`/api/events/${id}`);
+      return response.data;
+    },
+    refetchOnWindowFocus: false,
+  });
+};

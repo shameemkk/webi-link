@@ -123,7 +123,7 @@ const Events = () => {
                   <button 
                     className="w-full bg-blue-600 text-white py-2 rounded-lg hover:bg-blue-700 transition duration-300"
                     disabled={eventsLoading}
-                    onClick={() => navigate(`/event-details/${event._id}`)} // Add onClick handler
+                    onClick={() => navigate(`/event-details/${event._id}`)} 
                   >
                     View Details
                   </button>

@@ -48,7 +48,6 @@ const getEventById = async (req, res) => {
 // Update event
 const updateEvent = async (req, res) => {
   try {
-    console.log(req)
     const event = await Event.findByIdAndUpdate(
       req.params.id,
       req.body,

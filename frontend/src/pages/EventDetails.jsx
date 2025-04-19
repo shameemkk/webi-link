@@ -1,28 +1,24 @@
 import React, { useEffect, useState } from 'react';
-import { useParams, useNavigate } from 'react-router-dom';
-import { useAllEventDataList } from "../hooks/useEventData";
-// Remove sampleEvents import
-// import sampleEvents from '../assets/data/sampleEvents';
+import { useParams, useNavigate, data } from 'react-router-dom';
+import { useEventDataById } from "../hooks/useEventData";
+import axios from 'axios';
 
 const EventDetails = () => {
-  const { data: events = [], isLoading: eventsLoading } = useAllEventDataList();
   const { id } = useParams();
+  console.log(typeof id);
+  const { data , isLoading: eventsLoading } = useEventDataById(id);
   const navigate = useNavigate();
-  const [event, setEvent] = useState(null);
-  // Remove local loading state, use eventsLoading from hook
-  // const [loading, setLoading] = useState(true);
+  const [event, setEvent] = useState(data);
 
-  useEffect(() => {
-    if (!eventsLoading && events.length > 0) {
-      // Find the event with the matching _id from the fetched events
-      const foundEvent = events.find((e) => e._id === id);
-      
-      if (foundEvent) {
-        setEvent(foundEvent);
-      }
-      // setLoading(false); // Remove setting local loading state
-    }
-  }, [id, events, eventsLoading]); // Add events and eventsLoading to dependency array
+  // useEffect(() => {
+  //   // if (!eventsLoading && events.length > 0) {
+  //   //   // Find the event with the matching _id from the fetched events
+  //   //   const foundEvent = events.find((e) => e._id === id);
+  //   //   if (foundEvent) {
+  //   //     setEvent(foundEvent);
+  //   //   }
+  //   // }
+  // }, [id, data, eventsLoading]); 
 
   // Use eventsLoading for the loading state
   if (eventsLoading) {
@@ -57,7 +53,6 @@ const EventDetails = () => {
     return date.toLocaleDateString('en-US', { year: 'numeric', month: 'short', day: 'numeric' });
   };
   const formattedDate = formatDate(event.start_datetime);
-
   // Format the time (keep existing format)
   const formattedTime = new Date(event.start_datetime).toLocaleTimeString('en-US', {
     hour: '2-digit',
@@ -66,12 +61,20 @@ const EventDetails = () => {
 
   // Format price (consistent with Events.jsx)
   const formattedPrice = event.is_paid ? `$${event.price.toFixed(2)}` : 'Free';
-
   // Get organizer name (consistent with Events.jsx)
   const organizerName = event.organizer_id ? event.organizer_id.name : 'Unknown';
-
   // Get attendees count (consistent with Events.jsx)
   const attendeesCount = event.attendees ? event.attendees.length : 0;
+
+  const handleCheckout = async () => {
+    const res = await axios.post('api/payment/create-checkout-session', {
+      eventId : id
+    });
+    window.location.href = res.data.url;
+  };
+
+
+
 
   return (
     <div className="py-16 bg-gray-50 min-h-screen">
@@ -153,9 +156,8 @@ const EventDetails = () => {
                 >
                   Back to Events
                 </button>
-                
                 {event.is_paid && (
-                  <button className="bg-blue-600 text-white px-6 py-2 rounded-lg hover:bg-blue-700 transition duration-300">
+                  <button onClick={handleCheckout} className="bg-blue-600 text-white px-6 py-2 rounded-lg hover:bg-blue-700 transition duration-300">
                     Pay & Register Now
                   </button>
                 )}

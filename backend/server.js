@@ -6,17 +6,17 @@ const helmet = require('helmet');
 const rateLimit = require('express-rate-limit');
 const connectDB = require('./config/db');
 const eventRoutes = require('./routes/eventRoutes');
-
-// Import routes
 const authRoutes = require('./routes/authtRoutes');
+const paymentRoute = require('./routes/paymentRoutes')
+const { webhook } = require('./controllers/paymentController');
 
 const app = express();
 
 // Security middleware
 app.use(helmet());
 app.use(cors({
-  origin: process.env.CLIENT_URL || 'http://localhost:5175',
-  credentials: true
+  origin: process.env.CLIENT_URL,
+  credentials: true,
 }));
 
 // Rate limiting
@@ -26,13 +26,18 @@ app.use(cors({
 // });
 // app.use('/api/', limiter);
 
-// Middleware
+// Special middleware for Stripe webhook route - MUST come BEFORE express.json()
+app.post('/api/payment/webhook', express.raw({type: 'application/json'}), webhook);
+
+// Regular middleware for other routes
 app.use(express.json());
 app.use(cookieParser());
+
 
 // Routes
 app.use('/api/auth', authRoutes);
 app.use('/api/events', eventRoutes);
+app.use('/api/payment/',paymentRoute );
 
 // Error handling middleware
 app.use((err, req, res, next) => {
