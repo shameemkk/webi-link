@@ -5,6 +5,7 @@ import { useAuth } from "../../context/AuthContext";
 const Navbar = () => {
   const navigate = useNavigate();
   const [isOpen, setIsOpen] = useState(false);
+  const [isProfileOpen, setIsProfileOpen] = useState(false);
   const { user, logout } = useAuth();
 
   const handleNavigation = (path) => {
@@ -26,7 +27,7 @@ const Navbar = () => {
 
           {/* Desktop Navigation Links */}
           <div className="hidden md:flex items-center space-x-8">
-          <div
+            <div
               onClick={() => handleNavigation("/")}
               className="text-gray-700 hover:text-blue-600 font-medium transition duration-300 cursor-pointer"
             >
@@ -50,32 +51,84 @@ const Navbar = () => {
             >
               Contact
             </div>
-            {user && (
-              <div
-                onClick={() => handleNavigation("/dashboard")}
-                className="text-gray-700 hover:text-blue-600 font-medium transition duration-300 cursor-pointer"
-              >
-                Dashboard
-              </div>
-            )}
+            <div
+              onClick={() => handleNavigation("/dashboard")}
+              className="text-gray-700 hover:text-blue-600 font-medium transition duration-300 cursor-pointer"
+            >
+              Dashboard
+            </div>
           </div>
 
           {/* Right Side - Let's Start Button and Profile */}
           <div className="flex items-center space-x-4">
             {!user ? (
-              <button 
-                onClick={() => handleNavigation('/login')} 
+              <button
+                onClick={() => handleNavigation("/login")}
                 className="bg-gradient-to-r from-blue-600 to-indigo-700 text-white px-6 py-2 rounded-full font-semibold hover:opacity-90 transition duration-300"
               >
                 Let's Start
               </button>
             ) : (
-              <div onClick={logout} className="w-8 h-8 bg-gray-200 rounded-full overflow-hidden border-2 border-blue">
-                <img
-                  src={`https://ui-avatars.com/api/?name=${user.name}&background=random`}
-                  alt="Profile"
-                  className="w-full h-full object-cover "
-                />
+              <div className="relative w-8 h-8">
+                {isProfileOpen ? (
+                  <button
+                    onClick={() => setIsProfileOpen(!isProfileOpen)}
+                    className=" p-2 rounded-full  hover:bg-gray-100 focus:outline-none"
+                  >
+                    <svg
+                      className="h-5 w-5"
+                      fill="none"
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      strokeWidth="2"
+                      viewBox="0 0 24 24"
+                      stroke="currentColor"
+                    >
+                      <path d="M6 18L18 6M6 6l12 12" />
+                    </svg>
+                  </button>
+                ) : (
+                  <img
+                    src={`https://ui-avatars.com/api/?name=${user.name}&background=random`}
+                    alt="Profile"
+                    className="w-full h-full object-cover rounded-full border-2 border-blue-900 cursor-pointer"
+                    onClick={() => setIsProfileOpen(!isProfileOpen)}
+                  />
+                )}
+
+                {/* Profile Dropdown */}
+                <div
+                  className={`absolute right-0 mt-2 w-48 bg-white rounded-lg shadow-lg py-2 z-50 ${
+                    isProfileOpen ? "block" : "hidden"
+                  } transition-all duration-300 ease-in-out`}
+                >
+                  <div className="px-4 py-2 border-b border-gray-100">
+                    <p className="text-sm font-medium text-gray-900">
+                      {user.name}
+                    </p>
+                    <p className="text-xs text-gray-500">{user.email}</p>
+                  </div>
+                  <div className="py-1">
+                    <button
+                      onClick={() => {
+                        handleNavigation("/dashboard");
+                        setIsProfileOpen(false);
+                      }}
+                      className="block w-full px-4 py-2 text-left text-sm text-gray-700 hover:bg-gray-100"
+                    >
+                      Dashboard
+                    </button>
+                    <button
+                      onClick={() => {
+                        logout();
+                        setIsProfileOpen(false);
+                      }}
+                      className="block w-full px-4 py-2 text-left text-sm text-red-600 hover:bg-red-50"
+                    >
+                      Sign out
+                    </button>
+                  </div>
+                </div>
               </div>
             )}
 

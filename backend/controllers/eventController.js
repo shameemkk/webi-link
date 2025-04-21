@@ -11,6 +11,28 @@ const createEvent = async (req, res) => {
   }
 };
 
+const regiterEvent = async (req, res) => {
+  try {
+    const {eventId} = req.body;
+    const userId = req.userId; // Assuming userId is set in the request by auth middleware
+    const event = await Event.findById(eventId);
+    if (!event) {
+      return res.status(404).json({ message: 'Event not found' });
+    }
+    if (event.organizer_id.equals(userId)) {
+      return res.status(400).json({ message: 'Organizer cannot register for their own event' });
+    }
+    if (event.attendees.includes(userId)) {
+      return res.status(400).json({ message: 'User has already registered for this event' });
+    }
+    event.attendees.push(userId);
+    const updatedEvent = await event.save();
+    res.status(200).json(updatedEvent);
+  } catch (error) {
+    res.status(500).json({ message: error.message });
+  }
+};
+
 const getEventsByOrganizer = async (req, res) => {
   try {
     const organizerId = req.userId; // Assuming userId is set in the request by auth middleware
@@ -74,9 +96,22 @@ const deleteEvent = async (req, res) => {
   }
 };
 
+// Get events registered by the current user
+const getRegisteredEvents = async (req, res) => {
+  try {
+    const userId = req.userId; // request by auth middleware
+    const events = await Event.find({ attendees: userId }).populate('organizer_id', 'name');
+    res.status(200).json(events);
+  } catch (error) {
+    res.status(500).json({ message: error.message });
+  }
+};
+
 module.exports = {
   createEvent,
+  regiterEvent,
   getEventsByOrganizer,
+  getRegisteredEvents, 
   getAllEvents,
   getEventById,
   updateEvent,

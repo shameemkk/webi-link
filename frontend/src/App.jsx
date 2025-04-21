@@ -15,6 +15,10 @@ import PrivateRoute from "./components/PrivateRoute";
 import { ToastContainer } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 import Dashboard from "./pages/Dashboard";
+import PaymentSuccess from "./components/Payment/PaymentSuccess";
+import PaymentCancel from "./components/Payment/PaymentCancel";
+
+
 
 function App() {
   return (
@@ -44,6 +48,24 @@ function App() {
               </PrivateRoute>
             }
           />
+          <Route
+            path="payment/success"
+            element={
+              <PrivateRoute>
+                <PaymentSuccess />
+              </PrivateRoute>
+            }
+          />
+          <Route
+            path="payment/cancel"
+            element={
+              <PrivateRoute>
+                <PaymentCancel />
+              </PrivateRoute>
+            }
+          />
+        
+          
         </Routes>
         <Footer />
         <ToastContainer

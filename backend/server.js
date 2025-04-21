@@ -37,7 +37,7 @@ app.use(cookieParser());
 // Routes
 app.use('/api/auth', authRoutes);
 app.use('/api/events', eventRoutes);
-app.use('/api/payment/',paymentRoute );
+app.use('/api/payment',paymentRoute );
 
 // Error handling middleware
 app.use((err, req, res, next) => {

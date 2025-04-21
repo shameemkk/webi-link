@@ -35,8 +35,8 @@ const checkoutSession = async (req, res) => {
     metadata: { userId,
       eventId,
      },
-    success_url: `${CLIENT_URL}/success?session_id={CHECKOUT_SESSION_ID}`,
-    cancel_url: `${CLIENT_URL}/cancel`,
+    success_url: `${CLIENT_URL}/payment/success?event_id=${event._id}&title=${event.title}`,
+    cancel_url: `${CLIENT_URL}/payment/cancel?event_id=${event._id}&title=${event.title}`,
   });
 
   // 📝 Save the order in MongoDB
@@ -54,10 +54,8 @@ const checkoutSession = async (req, res) => {
 const webhook = async (req, res) => {
   console.log('Webhook received!');
   const sig = req.headers['stripe-signature'];
-  const endpointSecret = process.env.STRIPE_WEBHOOK_SECRET; // Move this to .env file
-
+  const endpointSecret = process.env.STRIPE_WEBHOOK_SECRET; 
   let event;
-
   try {
     event = stripe.webhooks.constructEvent(
       req.body,
@@ -68,7 +66,7 @@ const webhook = async (req, res) => {
     console.error(`Webhook Error: ${err.message}`);
     return res.status(400).send(`Webhook Error: ${err.message}`);
   }
-
+  
   // Handle the event
   switch (event.type) {
     case 'checkout.session.completed':

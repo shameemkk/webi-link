@@ -20,7 +20,6 @@ export const AuthProvider = ({ children }) => {
   // Check if user is authenticated on mount
   useEffect(() => {
     axios.defaults.baseURL = 'http://localhost:5001';
-    //  axios.defaults.withCredentials = true;  // Important for cookies
 
     // Request interceptor
     axios.interceptors.request.use(
