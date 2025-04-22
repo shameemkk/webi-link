@@ -54,10 +54,9 @@ const validateEvent = [
     .trim(),
 
   body('streaming_link')
-    .optional()
     .trim()
-    .isURL()
-    .withMessage('Invalid streaming link format'),
+    .notEmpty()
+    .withMessage('streaming_link is required'),
 
   body('cover_image')
     .optional()
