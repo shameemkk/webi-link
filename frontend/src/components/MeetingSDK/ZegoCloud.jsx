@@ -16,13 +16,13 @@ const ZegoCloud = ({ roomID, userName, initialRole }) => {
                 track.stop();
             });
         } catch (err) {
-            console.log('No media streams to cleanup');
+            console.log('No media streams to cleanup Error:',err);
         }
     };
 
     useEffect(() => {
         const initMeeting = async () => {
-            const appID = import.meta.env.VITE_ZEGO_APP_ID;
+            const appID = parseInt(import.meta.env.VITE_ZEGO_APP_ID);
             const serverSecret = import.meta.env.VITE_ZEGO_SERVER_SECRET ;
             const kitToken = ZegoUIKitPrebuilt.generateKitTokenForTest(
                 appID,

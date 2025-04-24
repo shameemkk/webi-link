@@ -18,12 +18,11 @@ const Meeting = () => {
   const role = event.organizer_id._id === user.id ? 'Host' : 'Participant';
   const generateRoomID =`Room_${Math.random().toString(36).substring(2, 10)}`;
   const roomID= event.roomName || generateRoomID;
-  console.log(role)
   useEffect(() => {
     if (!event || !roomID || !role) {
       navigate('/dashboard');
     }
-  }, [event, user, role, navigate]);
+  }, [event, user, role,roomID, navigate]);
 
   const handleStart = ()=>{
     try {

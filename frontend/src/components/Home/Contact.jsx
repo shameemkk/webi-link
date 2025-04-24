@@ -128,7 +128,7 @@ const Contact = () => {
                   <div className="text-2xl">📱</div>
                   <div>
                     <p className="font-medium text-gray-900">Phone</p>
-                    <p className="text-gray-600">+1 (555) 123-4567</p>
+                    <p className="text-gray-600">+91 (999) 123-4567</p>
                   </div>
                 </div>
               </div>

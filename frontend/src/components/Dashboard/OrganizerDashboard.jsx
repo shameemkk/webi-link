@@ -18,15 +18,14 @@ export default function OrganizerDashboard() {
     refetch,
     isError,
   } = useEventDataList();
-  const { mutate: createEvent, isLoading: createLoading } =useEventDataMutate();
-  const { mutate: updateEvent, isLoading: updateLoading } =useEventUpdateMutate();
+  const { mutate: createEvent } =useEventDataMutate();
+  const { mutate: updateEvent } =useEventUpdateMutate();
   const { user, checkAuth } = useAuth();
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [editingEvent, setEditingEvent] = useState(null);
   const [showTimeAlert, setShowTimeAlert] = useState(false);
   const [currentTimeMessage, setCurrentTimeMessage] = useState("");
   const [currentEvent, setCurrentEvent] = useState(null);
-  const [isEventStarting, setIsEventStarting] = useState(false);
   const navigate = useNavigate();
   const [formData, setFormData] = useState({
     title: "",
@@ -175,7 +174,7 @@ export default function OrganizerDashboard() {
           refetch();
         }
       } catch (error) {
-        toast.error("Request failed try Again");
+        toast.error("Request failed try Again",error);
       }
     } else {
       return;

@@ -32,12 +32,6 @@ export default function AttendeeDashboard() {
           },
         });
       }
-  
-    if (roomName) {
-      console.log(roomName)
-    } else {
-      toast.error("Streaming link not available for this event.");
-    }
   };
 
   return (

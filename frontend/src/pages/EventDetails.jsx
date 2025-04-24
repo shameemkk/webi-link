@@ -108,11 +108,18 @@ const EventDetails = () => {
     if (event.status === "upcoming") {
       console.log("Event is upcoming");
       setShowModal(true);
+    }else if(event.status === "cancelled") {
+      toast.info("This event cancelled");
+      return;
     } else {
-      if (event.streaming_link) {
-        window.open(event.streaming_link, "_blank");
+      if (event.roomName) {
+        navigate("/meeting", {
+          state: {
+            event: event,
+          },
+        });
       } else {
-        alert("Streaming link not available for this event.");
+        alert("roomName not available for this event.");
       }
     }
   };
