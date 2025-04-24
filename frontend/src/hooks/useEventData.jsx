@@ -104,3 +104,35 @@ export const useRegisteredEventList = () => {
     refetchOnWindowFocus: false,
   });
 };
+
+
+export const useStartMeetingMutate = () => {
+  return useMutation({
+    mutationFn: async ({ eventId, roomName }) => {
+      const response = await axios.put(`/api/events/start-meeting/${eventId}`, {roomName});
+      return response.data;
+    },
+    onError: (err) => {
+      if (err.response && err.response.data) {
+        return err.response.data;
+      }
+      return { message: "An unexpected error occurred" };
+    },
+  
+  });
+};
+export const useEndMeetingMutate = () => {
+  return useMutation({
+    mutationFn: async ({ roomName, status }) => {
+      const response = await axios.post('/api/events/end-meeting/', {roomName, status});
+      return response.data;
+    },
+    onError: (err) => {
+      if (err.response && err.response.data) {
+        return err.response.data;
+      }
+      return { message: "An unexpected error occurred" };
+    },
+  
+  });
+};

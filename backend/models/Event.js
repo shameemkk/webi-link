@@ -41,8 +41,9 @@ const eventSchema = new mongoose.Schema({
     type: Number,
     min: 0,
   },
-  streaming_link: {
+  roomName: {
     type: String,
+    default: null,
   },
   cover_image: {
     type: String,

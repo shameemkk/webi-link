@@ -1,9 +1,9 @@
 import { useRegisteredEventList } from "../../hooks/useEventData";
 import { toast } from "react-toastify";
-
+import { useNavigate } from "react-router-dom";
 export default function AttendeeDashboard() {
+  const navigate = useNavigate();
   const { data: events = [], isLoading: eventsLoading, refetch, isError } = useRegisteredEventList();
-
   const getStatusColor = (status) => {
     switch (status) {
       case "upcoming":
@@ -17,13 +17,24 @@ export default function AttendeeDashboard() {
     }
   };
 
-  const handleJoinEvent = (streamingLink, status) => {
+  const handleJoinEvent = (roomName, status, index) => {
     if (status === "upcoming") {
       toast.info("This event hasn't started yet");
       return;
+    }else if(status === "cancelled") {
+      toast.info("This event cancelled");
+      return;
     }
-    if (streamingLink) {
-      window.open(streamingLink, "_blank");
+      if (index) {
+        navigate("/meeting", {
+          state: {
+            event: events[index],
+          },
+        });
+      }
+  
+    if (roomName) {
+      console.log(roomName)
     } else {
       toast.error("Streaming link not available for this event.");
     }
@@ -221,37 +232,15 @@ export default function AttendeeDashboard() {
                       </span>
                     </div>
 
-                    <div className="flex items-center text-sm">
-                      <svg
-                        xmlns="http://www.w3.org/2000/svg"
-                        width="24"
-                        height="24"
-                        viewBox="0 0 24 24"
-                        fill="none"
-                        stroke="currentColor"
-                        strokeWidth="2"
-                        strokeLinecap="round"
-                        strokeLinejoin="round"
-                        className="mr-2 h-4 w-4 text-gray-500"
-                      >
-                        <polygon points="23 7 16 12 23 17 23 7"></polygon>
-                        <rect
-                          x="1"
-                          y="5"
-                          width="15"
-                          height="14"
-                          rx="2"
-                          ry="2"
-                        ></rect>
-                      </svg>
-                      <span className="truncate">{event.streaming_link}</span>
-                    </div>
+                    
                   </div>
                 </div>
                 <div className="flex items-center p-6 pt-2 border-t">
-                  <button
+                  
+                      <button
+                      disabled={event.status === "upcoming" || event.status === "completed" || event.status ==="cancelled"}
                     className="inline-flex items-center justify-center rounded-md text-sm font-medium transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 disabled:opacity-50 bg-gradient-to-r from-violet-500 to-purple-600 hover:from-violet-600 hover:to-purple-700 h-10 px-4 py-2 text-white w-full"
-                    onClick={() => handleJoinEvent(event.streaming_link, event.status)}
+                    onClick={() => handleJoinEvent(event.roomName, event.status ,index)}
                   >
                     <svg
                       xmlns="http://www.w3.org/2000/svg"
@@ -277,6 +266,9 @@ export default function AttendeeDashboard() {
                     </svg>
                     Join Event
                   </button>
+                    
+                  
+                  
                 </div>
               </div>
             ))}

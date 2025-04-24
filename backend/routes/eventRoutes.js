@@ -11,7 +11,9 @@ const {
   getAllEvents,
   getEventById,
   updateEvent,
-  deleteEvent
+  deleteEvent,
+  startMeeting,
+  endMeeting,
 } = require('../controllers/eventController');
 
 router.post('/', protect,isOrganizer, validateEvent, createEvent);
@@ -22,5 +24,7 @@ router.get('/', getAllEvents);
 router.get('/:id', getEventById);
 router.put('/:id', protect, isOrganizerEvent, updateEvent);
 router.delete('/:id', protect, isOrganizerEvent, deleteEvent);
+router.put('/start-meeting/:id',protect, isOrganizerEvent,startMeeting)
+router.post('/end-meeting',protect,endMeeting)
 
 module.exports = router;

@@ -53,10 +53,11 @@ const validateEvent = [
     .optional()
     .trim(),
 
-  body('streaming_link')
+  body('RoomName')
     .trim()
-    .notEmpty()
-    .withMessage('streaming_link is required'),
+    .optional()
+    .isString()
+    .withMessage('Room name must be a string'),
 
   body('cover_image')
     .optional()

@@ -4,7 +4,7 @@ const User = require('../models/User');
 const isOrganizer = async (req, res, next) => {
   try {
     const userId = req.userId;
-    const event = await User.findById({_id: userId , rolw: "Organizer"});
+    const event = await User.findById({_id: userId , role: "Organizer"});
     if (!event) {
       return res.status(403).json({ message: 'Access denied. Not an organizer' }); 
     }

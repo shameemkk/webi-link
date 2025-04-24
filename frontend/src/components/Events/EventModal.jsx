@@ -131,18 +131,6 @@ const EventModal = ({ isOpen, onClose,onUpdate, onSubmit, editingEvent, formData
               />
             </div>
 
-            <div className="grid gap-2">
-              <label htmlFor="streaming_link" className="block mb-2 text-sm font-medium text-gray-900 dark:text-white">Streaming Link</label>
-              <input
-                id="streaming_link"
-                name="streaming_link"
-                type="url"
-                value={formData.streaming_link}
-                onChange={handleInputChange}
-                className="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5 dark:bg-gray-600 dark:border-gray-500 dark:placeholder-gray-400 dark:text-white"
-                required
-              />
-            </div>
           </div>
 
           <div className="flex justify-end space-x-4">

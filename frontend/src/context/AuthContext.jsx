@@ -19,7 +19,7 @@ export const AuthProvider = ({ children }) => {
   ]
   // Check if user is authenticated on mount
   useEffect(() => {
-    axios.defaults.baseURL = 'http://localhost:5001';
+    axios.defaults.baseURL = import.meta.env.VITE_API_URL;
 
     // Request interceptor
     axios.interceptors.request.use(

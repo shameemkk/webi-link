@@ -1,18 +1,33 @@
 import { useState } from "react";
 import EventModal from "../Events/EventModal";
-import { useEventDataList, useEventDataMutate ,useEventUpdateMutate} from "../../hooks/useEventData";
+import EventStartTimeAlert from "../Events/EventStartTimeAlert";
+import {
+  useEventDataList,
+  useEventDataMutate,
+  useEventUpdateMutate,
+} from "../../hooks/useEventData";
 import { toast } from "react-toastify";
 import { useAuth } from "../../context/AuthContext";
 import axios from "axios";
+import { useNavigate } from "react-router-dom";
 
-// Sample events data
 export default function OrganizerDashboard() {
-  const { data: events = [], isLoading: eventsLoading , refetch, isError} = useEventDataList(); //organizer own events
+  const {
+    data: events = [],
+    isLoading: eventsLoading,
+    refetch,
+    isError,
+  } = useEventDataList();
   const { mutate: createEvent, isLoading: createLoading } =useEventDataMutate();
   const { mutate: updateEvent, isLoading: updateLoading } =useEventUpdateMutate();
   const { user, checkAuth } = useAuth();
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [editingEvent, setEditingEvent] = useState(null);
+  const [showTimeAlert, setShowTimeAlert] = useState(false);
+  const [currentTimeMessage, setCurrentTimeMessage] = useState("");
+  const [currentEvent, setCurrentEvent] = useState(null);
+  const [isEventStarting, setIsEventStarting] = useState(false);
+  const navigate = useNavigate();
   const [formData, setFormData] = useState({
     title: "",
     description: "",
@@ -21,9 +36,8 @@ export default function OrganizerDashboard() {
     price: 0,
     start_datetime: "",
     duration: 60,
-    streaming_link: "",
     status: "upcoming",
-    organizer_id: "", // Added organizer_id field
+    organizer_id: "",
   });
 
   const handleInputChange = (e) => {
@@ -53,8 +67,8 @@ export default function OrganizerDashboard() {
       checkAuth();
       const eventData = {
         ...formData,
-        price: formData.is_paid ? parseFloat(formData.price) : 0,
-        duration: parseInt(formData.duration),
+        price: formData.is_paid ? Number.parseFloat(formData.price) : 0,
+        duration: Number.parseInt(formData.duration),
         start_datetime: new Date(formData.start_datetime).toISOString(),
         organizer_id: user.id,
       };
@@ -84,40 +98,44 @@ export default function OrganizerDashboard() {
       console.error("Error creating event:", error);
     }
   };
+
   const handleUpdate = async () => {
     try {
       checkAuth();
       const eventData = {
         ...formData,
-        price: formData.is_paid ? parseFloat(formData.price) : 0,
-        duration: parseInt(formData.duration),
+        price: formData.is_paid ? Number.parseFloat(formData.price) : 0,
+        duration: Number.parseInt(formData.duration),
         start_datetime: new Date(formData.start_datetime).toISOString(),
         organizer_id: user.id,
       };
       const event = events[editingEvent];
       const eventId = event._id;
-      updateEvent({eventId,eventData}, {
-        onError: (error) => {
-          if (
-            error.response?.data?.errors &&
-            Array.isArray(error.response.data.errors)
-          ) {
-            error.response.data.errors.forEach((err) => {
-              toast.error(err.msg);
-            });
-          } else {
-            const errorMessage =
-              error.response?.data?.message || "Failed to create event";
-            toast.error(errorMessage);
-          }
-        },
-        onSuccess: () => {
-          toast.success("Event Updated successfully");
-          setIsModalOpen(false);
-          setEditingEvent(null);
-          resetForm();
-        },
-      });
+      updateEvent(
+        { eventId, eventData },
+        {
+          onError: (error) => {
+            if (
+              error.response?.data?.errors &&
+              Array.isArray(error.response.data.errors)
+            ) {
+              error.response.data.errors.forEach((err) => {
+                toast.error(err.msg);
+              });
+            } else {
+              const errorMessage =
+                error.response?.data?.message || "Failed to create event";
+              toast.error(errorMessage);
+            }
+          },
+          onSuccess: () => {
+            toast.success("Event Updated successfully");
+            setIsModalOpen(false);
+            setEditingEvent(null);
+            resetForm();
+          },
+        }
+      );
     } catch (error) {
       console.error("Error creating event:", error);
     }
@@ -132,7 +150,6 @@ export default function OrganizerDashboard() {
       price: 0,
       start_datetime: "",
       duration: 60,
-      streaming_link: "",
       status: "upcoming",
     });
   };
@@ -148,22 +165,49 @@ export default function OrganizerDashboard() {
   };
 
   const handleDelete = async (index) => {
-    if (confirm("Are you sure want to delete this Event?")){
+    if (confirm("Are you sure want to delete this Event?")) {
       const event = events[index];
-    const eventId = event._id;
-    try {
-     const response = await axios.delete(`api/events/${eventId}`)
-    if(response.status == 200){
-      toast.info(response.data.message || 'Event deleted successfully')
-      refetch()
-    }
-    } catch (error) {
-      toast.error('Request faild try Again')
-    }
-    }else{
+      const eventId = event._id;
+      try {
+        const response = await axios.delete(`api/events/${eventId}`);
+        if (response.status == 200) {
+          toast.info(response.data.message || "Event deleted successfully");
+          refetch();
+        }
+      } catch (error) {
+        toast.error("Request failed try Again");
+      }
+    } else {
       return;
     }
-    
+  };
+
+  const handleStartEvent = (event) => {
+    const eventTime = new Date(event.start_datetime);
+    const currentTime = new Date();
+
+    if (eventTime > currentTime) {
+      // Calculate time difference
+      const timeDiff = eventTime - currentTime;
+      const days = Math.floor(timeDiff / (1000 * 60 * 60 * 24));
+      const hours = Math.floor(
+        (timeDiff % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60)
+      );
+      const minutes = Math.floor((timeDiff % (1000 * 60 * 60)) / (1000 * 60));
+
+      let timeMessage = "This event starts in ";
+      if (days > 0) timeMessage += `${days} day${days > 1 ? "s" : ""} `;
+      if (hours > 0) timeMessage += `${hours} hour${hours > 1 ? "s" : ""} `;
+      if (minutes > 0)
+        timeMessage += `${minutes} minute${minutes > 1 ? "s" : ""} `;
+
+      setCurrentTimeMessage(timeMessage);
+      setCurrentEvent(event);
+      setShowTimeAlert(true);
+    } else {
+      setCurrentEvent(event);
+      handleStartNow();
+    }
   };
 
   const getStatusColor = (status) => {
@@ -179,8 +223,31 @@ export default function OrganizerDashboard() {
     }
   };
 
+  const isEventInFuture = (eventTime) => {
+    return new Date(eventTime) > new Date();
+  };
+
+  const handleStartNow = () => {
+    if (currentEvent) {
+      navigate("/meeting", {
+        state: {
+          event: currentEvent,
+        },
+      });
+
+      setShowTimeAlert(false);
+    }
+  };
+
   return (
-    <div className="py-12 h-full bg-white overflow-scroll ">
+    <div className="py-12 h-full bg-white overflow-auto">
+      {showTimeAlert && (
+        <EventStartTimeAlert
+          setShowModal={setShowTimeAlert}
+          timeMessage={currentTimeMessage}
+          onStartNow={handleStartNow}
+        />
+      )}
       <div className="container mx-auto px-4 py-12">
         <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-8 gap-4">
           <div>
@@ -194,6 +261,7 @@ export default function OrganizerDashboard() {
           <button
             onClick={() => setIsModalOpen(true)}
             className="inline-flex items-center justify-center rounded-md text-sm font-medium transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 disabled:opacity-50 bg-gradient-to-r from-violet-500 to-purple-600 hover:from-violet-600 hover:to-purple-700 h-10 px-4 py-2 text-white"
+            aria-label="Add new event"
           >
             <svg
               xmlns="http://www.w3.org/2000/svg"
@@ -206,6 +274,7 @@ export default function OrganizerDashboard() {
               strokeLinecap="round"
               strokeLinejoin="round"
               className="mr-2 h-4 w-4"
+              aria-hidden="true"
             >
               <line x1="12" y1="5" x2="12" y2="19"></line>
               <line x1="5" y1="12" x2="19" y2="12"></line>
@@ -220,19 +289,46 @@ export default function OrganizerDashboard() {
           </div>
         ) : isError ? (
           <div className="flex flex-col items-center justify-center p-12 text-center bg-red-50 border border-red-200 rounded-lg">
-            <svg xmlns="http://www.w3.org/2000/svg" className="h-10 w-10 text-red-500 mb-3" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2">
-              <path strokeLinecap="round" strokeLinejoin="round" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+            <svg
+              xmlns="http://www.w3.org/2000/svg"
+              className="h-10 w-10 text-red-500 mb-3"
+              fill="none"
+              viewBox="0 0 24 24"
+              stroke="currentColor"
+              strokeWidth="2"
+              aria-hidden="true"
+            >
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
+              />
             </svg>
-            <h3 className="mt-2 text-lg font-semibold text-red-700">Error Fetching Data</h3>
+            <h3 className="mt-2 text-lg font-semibold text-red-700">
+              Error Fetching Data
+            </h3>
             <p className="mt-1 text-sm text-red-600">
               There was a problem retrieving your events. Please try again.
             </p>
             <button
               onClick={() => refetch()}
               className="mt-4 inline-flex items-center justify-center rounded-md text-sm font-medium transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 disabled:opacity-50 bg-red-600 text-white hover:bg-red-700 h-10 px-4 py-2"
+              aria-label="Retry loading events"
             >
-              <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2">
-                <path strokeLinecap="round" strokeLinejoin="round" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m-15.357-2a8.001 8.001 0 0115.357-2m0 0H15" />
+              <svg
+                xmlns="http://www.w3.org/2000/svg"
+                className="h-4 w-4 mr-2"
+                fill="none"
+                viewBox="0 0 24 24"
+                stroke="currentColor"
+                strokeWidth="2"
+                aria-hidden="true"
+              >
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m-15.357-2a8.001 8.001 0 0115.357-2m0 0H15"
+                />
               </svg>
               Retry
             </button>
@@ -251,6 +347,7 @@ export default function OrganizerDashboard() {
                 strokeLinecap="round"
                 strokeLinejoin="round"
                 className="h-10 w-10 text-slate-500"
+                aria-hidden="true"
               >
                 <rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect>
                 <line x1="16" y1="2" x2="16" y2="6"></line>
@@ -265,6 +362,7 @@ export default function OrganizerDashboard() {
             <button
               onClick={() => setIsModalOpen(true)}
               className="inline-flex items-center justify-center rounded-md text-sm font-medium transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 disabled:opacity-50 bg-blue-600 text-white hover:bg-blue-700 h-10 px-4 py-2 mt-6"
+              aria-label="Add event"
             >
               <svg
                 xmlns="http://www.w3.org/2000/svg"
@@ -277,6 +375,7 @@ export default function OrganizerDashboard() {
                 strokeLinecap="round"
                 strokeLinejoin="round"
                 className="mr-2 h-4 w-4"
+                aria-hidden="true"
               >
                 <line x1="12" y1="5" x2="12" y2="19"></line>
                 <line x1="5" y1="12" x2="19" y2="12"></line>
@@ -333,6 +432,7 @@ export default function OrganizerDashboard() {
                         strokeLinecap="round"
                         strokeLinejoin="round"
                         className="mr-2 h-4 w-4 text-gray-500"
+                        aria-hidden="true"
                       >
                         <rect
                           x="3"
@@ -360,6 +460,7 @@ export default function OrganizerDashboard() {
                         strokeLinecap="round"
                         strokeLinejoin="round"
                         className="ml-3 mr-2 h-4 w-4 text-gray-500"
+                        aria-hidden="true"
                       >
                         <circle cx="12" cy="12" r="10"></circle>
                         <polyline points="12 6 12 12 16 14"></polyline>
@@ -384,6 +485,7 @@ export default function OrganizerDashboard() {
                         strokeLinecap="round"
                         strokeLinejoin="round"
                         className="mr-2 h-4 w-4 text-gray-500"
+                        aria-hidden="true"
                       >
                         <circle cx="12" cy="12" r="10"></circle>
                         <polyline points="12 6 12 12 16 14"></polyline>
@@ -403,6 +505,7 @@ export default function OrganizerDashboard() {
                         strokeLinecap="round"
                         strokeLinejoin="round"
                         className="mr-2 h-4 w-4 text-gray-500"
+                        aria-hidden="true"
                       >
                         <circle cx="12" cy="12" r="10"></circle>
                         <line x1="12" y1="8" x2="12" y2="12"></line>
@@ -412,38 +515,13 @@ export default function OrganizerDashboard() {
                         {event.is_paid ? `$${event.price.toFixed(2)}` : "Free"}
                       </span>
                     </div>
-
-                    <div className="flex items-center text-sm">
-                      <svg
-                        xmlns="http://www.w3.org/2000/svg"
-                        width="24"
-                        height="24"
-                        viewBox="0 0 24 24"
-                        fill="none"
-                        stroke="currentColor"
-                        strokeWidth="2"
-                        strokeLinecap="round"
-                        strokeLinejoin="round"
-                        className="mr-2 h-4 w-4 text-gray-500"
-                      >
-                        <polygon points="23 7 16 12 23 17 23 7"></polygon>
-                        <rect
-                          x="1"
-                          y="5"
-                          width="15"
-                          height="14"
-                          rx="2"
-                          ry="2"
-                        ></rect>
-                      </svg>
-                      <span className="truncate">{event.streaming_link}</span>
-                    </div>
                   </div>
                 </div>
-                <div className="flex items-center p-6 pt-2 border-t">
+                <div className="flex flex-wrap items-center p-6 pt-2 border-t gap-2">
                   <button
                     className="inline-flex items-center justify-center rounded-md text-sm font-medium transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 disabled:opacity-50 border border-gray-300 bg-white hover:bg-gray-100 h-10 px-4 py-2"
                     onClick={() => handleEdit(index)}
+                    aria-label="Edit event"
                   >
                     <svg
                       xmlns="http://www.w3.org/2000/svg"
@@ -456,15 +534,47 @@ export default function OrganizerDashboard() {
                       strokeLinecap="round"
                       strokeLinejoin="round"
                       className="mr-2 h-4 w-4"
+                      aria-hidden="true"
                     >
                       <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path>
                       <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path>
                     </svg>
                     Edit
                   </button>
+                        {
+                          event.status !== 'completed' && event.status !== 'cancelled' && (
+                            <button
+                              className="inline-flex items-center justify-center rounded-md text-sm font-medium transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 disabled:opacity-50 border border-green-500 bg-green-50 hover:bg-green-100 h-10 px-4 py-2 text-green-700"
+                              onClick={() => handleStartEvent(event)}
+                              aria-label="Start event"
+                            >
+                              <svg
+                                xmlns="http://www.w3.org/2000/svg"
+                                width="24"
+                                height="24"
+                                viewBox="0 0 24 24"
+                                fill="none"
+                                stroke="currentColor"
+                                strokeWidth="2"
+                                strokeLinecap="round"
+                                strokeLinejoin="round"
+                                className="mr-2 h-4 w-4"
+                                aria-hidden="true"
+                              >
+                                <polygon points="5 3 19 12 5 21 5 3"></polygon>
+                              </svg>
+                              {isEventInFuture(event.start_datetime)
+                                ? "Start Event"
+                                : "Start Now"}
+                            </button>
+                          )
+                        }
+                  
+
                   <button
-                    className="inline-flex items-center justify-center rounded-md text-sm font-medium transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 disabled:opacity-50 border border-gray-300 bg-white hover:bg-gray-100 h-10 px-4 py-2 text-red-500 hover:text-red-700  ml-auto"
+                    className="inline-flex items-center justify-center rounded-md text-sm font-medium transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 disabled:opacity-50 border border-gray-300 bg-white hover:bg-gray-100 h-10 px-4 py-2 text-red-500 hover:text-red-700 ml-auto"
                     onClick={() => handleDelete(index)}
+                    aria-label="Delete event"
                   >
                     <svg
                       xmlns="http://www.w3.org/2000/svg"
@@ -477,6 +587,7 @@ export default function OrganizerDashboard() {
                       strokeLinecap="round"
                       strokeLinejoin="round"
                       className="mr-2 h-4 w-4"
+                      aria-hidden="true"
                     >
                       <polyline points="3 6 5 6 21 6"></polyline>
                       <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path>
@@ -505,7 +616,6 @@ export default function OrganizerDashboard() {
           handleInputChange={handleInputChange}
           handleSelectChange={handleSelectChange}
           handleCheckboxChange={handleCheckboxChange}
-        
         />
       </div>
     </div>
