@@ -2,7 +2,7 @@ import React from 'react';
 
 const Hero = () => {
   return (
-    <div className="sm:pt-10 bg-gradient-to-r from-blue-600 to-indigo-700 min-h-screen flex items-center">
+    <div className="bg-gradient-to-r from-blue-600 to-indigo-700 min-h-screen flex items-center">
       <div className="container mx-auto px-4 py-16">
         <div className="flex flex-col lg:flex-row items-center justify-between gap-12">
           <div className="lg:w-1/2 text-white">
